@@ -8,6 +8,12 @@ class CirculaList {
     buf_ = new T[size_];
     Clear();
   }
+  ~CirculaList() {
+    if(buf_)
+    {
+      delete [] buf_;
+    }
+  }
 
   inline int Count() { return (head_ - tail_) & (size_ - 1); }
 
