@@ -1,67 +1,73 @@
 #ifndef CIRCULAR_LIST_H
 #define CIRCULAR_LIST_H
 
-template <class T>
-class CirculaList {
+template <class T, int LEN>
+class CircularList {
+ private:
+  int_32 tail_, head_;  // indices
+  T list_[LEN];         // buffer
+
  public:
-  explicit CirculaList(int size) : size_(size) {
-    buf_ = new T[size_];
-    Clear();
-  }
-  ~CirculaList() {
-    if(buf_)
-    {
-      delete [] buf_;
-    }
-  }
+  CircularList() { head_ = tail_ = 0; }
 
-  inline int Count() { return (head_ - tail_) & (size_ - 1); }
+  ~CircularList(void) {}
 
-  inline int RemainingCapacity() { return (tail_ - (head_ + 1)) & (size_ - 1); }
+  void clear() { head_ = tail_ = 0; }
 
-  inline bool IsEmpty() { return head_ == tail_; }
-
-  inline void Clear() { head_ = tail_ = 0; }
-
-  inline bool HasFreeSpace() { return RemainingCapacity() > 0; }
-
-  inline bool Push(T element) {
-    if (HasFreeSpace()) {
-      buf_[head_] = element;
-      head_ = (head_ + 1) & (size_ - 1);
-      return true;
-    } else
-      return false;
+  // Enqueue one element
+  inline void push(const T &element) {
+    // test for buffer full
+    if (IsFull()) head_ = (head_ + 1) & (LEN - 1);
+    list_[tail_] = element;
+    tail_ = (tail_ + 1) & (LEN - 1);
   }
 
-  inline bool Pop(T &element) {
-    if (IsEmpty())
-      return false;
-    else {
-      element = buf_[tail_];
-      tail_ = (tail_ + 1) & (size_ - 1);
-      return true;
-    }
-  }
-  inline bool Top(T &element) {
-    if (IsEmpty())
-      return false;
-    else {
-      element = buf_[tail_];
-    }
+  void pushAll(const T element[], int_32 len) {
+    for (int_32 i = 0; i < len; i++) push(element[i]);
   }
 
-  inline bool At(int index, T &element) {
-    if (Count() <= index) return false;
-    element = buf_[(head_ + index) & (size_ - 1)];
+  // read top element or last enqueued element
+  bool at(int_32 idx, T &element) const {
+    // check for empty list
+    if (getLength() <= idx) return false;
+
+    int_32 _idx = (head_ + idx) % LEN;
+    element = list_[_idx];
+
     return true;
   }
 
- private:
-  T *buf_;
-  int head_;
-  int tail_;
-  const int size_;
+  // dequeue one element
+  inline bool pop(T &element) {
+    // check for empty list
+    if (IsEmpty()) return false;
+    element = list_[head_];
+    head_ = (head_ + 1) & (LEN - 1);
+    return true;
+  }
+
+  bool Top(T &element) {
+    // check for empty list
+    if (IsEmpty()) return false;
+
+    element = list_[head_];
+    return true;
+  }
+
+  int_32 getLength() const {
+    if (IsEmpty()) return 0;
+    return LEN - ((head_ - tail_) & (LEN - 1));
+  }
+
+  inline int_32 getCapacity() const { return (LEN - 1); }
+
+  inline int_32 RemainingCapacity() const {
+    return (getCapacity() - getLength());
+  }
+
+  bool IsEmpty() const { return (head_ == tail_); }
+
+  inline bool IsFull() const { return (RemainingCapacity() <= 0); }
 };
 
 #endif  // !1
